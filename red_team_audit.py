@@ -16,6 +16,9 @@ from langchain.embeddings import init_embeddings
 
 # Optional imports for vector DB support; fail gracefully.
 has_pinecone = False
+has_milvus = False
+has_groq = False
+
 try:
     import pinecone
     has_pinecone = True
@@ -27,6 +30,12 @@ try:
     has_milvus = True
 except Exception:
     has_milvus = False
+
+try:
+    from langchain_groq import ChatGroq
+    has_groq = True
+except Exception:
+    pass
 
 load_dotenv()
 
@@ -160,6 +169,14 @@ def make_llm(provider: str, model_name: str, temperature: float = 0.0):
             temperature=temperature,
         )
 
+    if provider == "groq":
+        if not has_groq:
+            raise RuntimeError("Groq support is not installed in this environment.")
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY required for Groq provider")
+        return ChatGroq(groq_api_key=api_key, model_name=model_name, temperature=temperature)
+
     raise ValueError(f"Unsupported provider: {provider}")
 
 
@@ -283,9 +300,9 @@ def trust_score_report(evaluation: Dict) -> float:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="LLM Red-Teaming Financial Audit")
-    parser.add_argument("--provider", choices=["openai", "anthropic", "azure"], default="anthropic", help="LLM provider")
+    parser.add_argument("--provider", choices=["openai", "anthropic", "azure", "groq"], default="groq", help="LLM provider")
     parser.add_argument("--vector-db", choices=["faiss", "milvus", "pinecone"], default="faiss", help="Vector store backend")
-    parser.add_argument("--model", default="claude-3-sonnet-20240229", help="Model name")
+    parser.add_argument("--model", default="llama3-70b-8192", help="Model name")
     parser.add_argument("--embed-model", default="text-embedding-3-small", help="Embedding model name (always OpenAI)")
     parser.add_argument("--prompt-file", type=str, help="Optional file with custom attack prompts (one per line)")
     parser.add_argument("--output", default="trust_score_report.json", help="Output report path")
@@ -300,6 +317,9 @@ def main() -> None:
         sys.exit(1)
     if args.provider == "azure" and (not os.getenv("AZURE_OPENAI_API_KEY") or not os.getenv("AZURE_OPENAI_ENDPOINT")):
         logging.error("AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT environment variables are required.")
+        sys.exit(1)
+    if args.provider == "groq" and not os.getenv("GROQ_API_KEY"):
+        logging.error("GROQ_API_KEY environment variable is required.")
         sys.exit(1)
 
     llm = make_llm(args.provider, args.model, temperature=0.0)

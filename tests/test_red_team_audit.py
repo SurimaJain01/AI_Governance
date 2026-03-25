@@ -1,11 +1,5 @@
 import pytest
-from red_team_audit import (
-    detect_prohibited_response,
-    detect_safety_pattern,
-    trust_score_report,
-    classify_chain_of_thought,
-)
-
+import red_team_audit
 
 def test_detect_prohibited_response():
     prohibited, matches, score = detect_prohibited_response("This is guaranteed and tax evasion advice.")
