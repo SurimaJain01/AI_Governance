@@ -25,13 +25,23 @@ This repository contains a prototype tool that tests a financial LLM for adversa
 
 ### Run the audit
 ```bash
-python red_team_audit.py --vector-db faiss --openai-model gpt-3.5-turbo --output trust_report.json
+python red_team_audit.py --provider openai --vector-db faiss --model gpt-3.5-turbo --embed-model text-embedding-3-small --output trust_report.json
 ```
 
 ### Custom prompt list
 ```bash
-python red_team_audit.py --prompt-file custom_prompts.txt --vector-db milvus
+python red_team_audit.py --prompt-file custom_prompts.txt --provider openai --vector-db faiss
 ```
+
+### Provider options
+- `--provider openai` (default)
+- `--provider anthropic` (requires ANTHROPIC_API_KEY)
+- `--provider azure` (requires AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT)
+
+### Vector DB options
+- `--vector-db faiss` (local, default)
+- `--vector-db milvus` (placeholder, requires pymilvus; fallback to Noop in this version)
+- `--vector-db pinecone` (placeholder, requires pinecone-client; fallback to Noop in this version)
 
 ### Output
 - `trust_score_report.json` includes per-attack outcomes and an aggregated trust score (0-100).
