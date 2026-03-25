@@ -18,24 +18,25 @@ This repository contains a prototype tool that tests a financial LLM for adversa
 
 2. Create a `.env` file with:
    ```bash
-   OPENAI_API_KEY=your_openai_api_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   OPENAI_API_KEY=your_openai_api_key  # required for embeddings
    PINECONE_API_KEY=your_pinecone_api_key  # optional
    PINECONE_ENVIRONMENT=your_pinecone_env  # optional
    ```
 
 ### Run the audit
 ```bash
-python red_team_audit.py --provider openai --vector-db faiss --model gpt-3.5-turbo --embed-model text-embedding-3-small --output trust_report.json
+python red_team_audit.py --provider anthropic --model claude-3-sonnet-20240229 --embed-model text-embedding-3-small --output trust_report.json
 ```
 
 ### Custom prompt list
 ```bash
-python red_team_audit.py --prompt-file custom_prompts.txt --provider openai --vector-db faiss
+python red_team_audit.py --prompt-file custom_prompts.txt --provider anthropic --vector-db faiss
 ```
 
 ### Provider options
-- `--provider openai` (default)
-- `--provider anthropic` (requires ANTHROPIC_API_KEY)
+- `--provider anthropic` (default, requires ANTHROPIC_API_KEY)
+- `--provider openai` (requires OPENAI_API_KEY)
 - `--provider azure` (requires AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT)
 
 ### Vector DB options

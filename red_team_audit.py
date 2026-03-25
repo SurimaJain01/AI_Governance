@@ -164,23 +164,11 @@ def make_llm(provider: str, model_name: str, temperature: float = 0.0):
 
 
 def get_embeddings_provider(provider: str, model_name: str):
-    provider = provider.lower()
-    if provider == "azure":
-        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        if not endpoint:
-            raise ValueError("AZURE_OPENAI_ENDPOINT required for Azure embeddings")
-        return init_embeddings(model=model_name, provider="azure_openai", openai_api_base=endpoint)
-
-    if provider == "anthropic":
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY required for Anthropic embeddings")
-        return init_embeddings(model=model_name, provider="anthropic", anthropic_api_key=api_key)
-
+    # Always use OpenAI for embeddings, regardless of LLM provider
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise ValueError("OPENAI_API_KEY required for OpenAI embeddings")
-    return init_embeddings(model=model_name, provider="openai", openai_api_key=api_key)
+        raise ValueError("OPENAI_API_KEY required for embeddings (even when using other LLM providers)")
+    return init_embeddings(model="text-embedding-3-small", provider="openai", openai_api_key=api_key)
 
 
 def init_vector_store(name: str, texts: List[str], embeddings, config: Dict):
@@ -295,10 +283,10 @@ def trust_score_report(evaluation: Dict) -> float:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="LLM Red-Teaming Financial Audit")
-    parser.add_argument("--provider", choices=["openai", "anthropic", "azure"], default="openai", help="LLM provider")
+    parser.add_argument("--provider", choices=["openai", "anthropic", "azure"], default="anthropic", help="LLM provider")
     parser.add_argument("--vector-db", choices=["faiss", "milvus", "pinecone"], default="faiss", help="Vector store backend")
-    parser.add_argument("--model", default="gpt-3.5-turbo", help="Model name")
-    parser.add_argument("--embed-model", default="text-embedding-3-small", help="Embedding model name")
+    parser.add_argument("--model", default="claude-3-sonnet-20240229", help="Model name")
+    parser.add_argument("--embed-model", default="text-embedding-3-small", help="Embedding model name (always OpenAI)")
     parser.add_argument("--prompt-file", type=str, help="Optional file with custom attack prompts (one per line)")
     parser.add_argument("--output", default="trust_score_report.json", help="Output report path")
     parser.add_argument("--audit-log", default="audit/audit.log", help="Audit log path")
